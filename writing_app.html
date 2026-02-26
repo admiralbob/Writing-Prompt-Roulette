@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Writing Prompt Roulette</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <style>
+        body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
+        h1 { color: #ff4757; margin-top: 40px; }
+        .container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
+        .column { display: flex; flex-direction: column; align-items: center; }
+        .wheel {
+            width: 280px; height: 200px; background: #1e1e1e; border: 2px solid #444;
+            border-radius: 15px; display: flex; align-items: center; justify-content: center;
+            padding: 20px; font-weight: bold; font-size: 18px; line-height: 1.4;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); box-sizing: border-box;
+        }
+        .label { color: #ff4757; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; letter-spacing: 2px; font-weight: bold; }
+        .button-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        button {
+            padding: 15px 40px; font-size: 18px; cursor: pointer; border-radius: 50px; border: none;
+            background: #ff4757; color: white; font-weight: bold; width: 280px; transition: 0.2s;
+        }
+        button:hover { background: #ff6b81; transform: scale(1.02); }
+        #save-btn { background: #2f3542; display: none; font-size: 14px; }
+        .spinning { border-color: #ff4757; animation: shake 0.1s infinite; }
+        @keyframes shake { 0% { transform: translateY(-1px); } 100% { transform: translateY(1px); } }
+    </style>
+</head>
+<body>
+
+    <h1>Writing Roulette</h1>
+    <p style="color: #95a5a6;">Tap to generate your next story.</p>
+
+    <div class="container">
+        <div class="column">
+            <div class="label">Scenario</div>
+            <div id="scen" class="wheel">?</div>
+        </div>
+        <div class="column">
+            <div class="label">Genre</div>
+            <div id="gen" class="wheel">?</div>
+        </div>
+        <div class="column">
+            <div class="label">Character & Task</div>
+            <div id="char" class="wheel">?</div>
+        </div>
+    </div>
+
+    <div class="button-group">
+        <button onclick="spin()">SPIN THE WHEELS</button>
+        <button id="save-btn" onclick="download()">DOWNLOAD AS TXT</button>
+    </div>
+
+    <script>
+        const scenarios = [
+            "An object that feels genuine empathy for its owner.",
+            "Two characters are trapped in a room, but neither speak the same language.",
+            "A character discovers a door in their house that wasn't there yesterday.",
+            "A letter arrives, but it's addressed to a version of the recipient that doesn't exist yet.",
+            "A celebration is interrupted by a broadcast that changes the laws of physics.",
+            "A character must trade their most prized memory for vital information."
+        ];
+
+        const genres = [
+            "Contemporary Drama: Grounded stories about real people and modern life.",
+            "High Fantasy: Epic tales featuring magic or mythical worlds.",
+            "Cosy Mystery: A gentle puzzle focused on community and secrets.",
+            "Speculative Fiction: Stories about tech or social shifts.",
+            "Gothic Horror: Atmospheric stories of dread and haunting secrets.",
+            "Satire/Comedy: Witty or exaggerated looks at society and norms.",
+            "Action/Adventure: Fast-paced stories of journeys and peril.",
+            "Romance: Stories centered on the growth of a relationship."
+        ];
+
+        const characters = [
+            "The Newcomer: Must find a way to fit in despite a glaring secret.",
+            "The Professional: Must finish a job while being constantly interrupted.",
+            "The Messenger: Must deliver a piece of news that will change everything.",
+            "The Neighbor: Must ask for a favor from someone they’ve been avoiding.",
+            "The Expert: Must explain something complex to someone who doesn't care.",
+            "The Relative: Must settle an old family argument once and for all.",
+            "The Bystander: Must decide whether to step in or walk away from a conflict.",
+            "The Outcast: Must convince a group of strangers to trust them."
+        ];
+
+        function spin() {
+            document.getElementById('save-btn').style.display = 'none';
+            const ids = ['scen', 'gen', 'char'];
+            const lists = [scenarios, genres, characters];
+
+            ids.forEach((id, i) => {
+                let el = document.getElementById(id);
+                el.classList.add('spinning');
+                let count = 0;
+                let timer = setInterval(() => {
+                    el.innerText = lists[i][Math.floor(Math.random() * lists[i].length)];
+                    count++;
+                    if (count > 15) {
+                        clearInterval(timer);
+                        el.classList.remove('spinning');
+                        if (i === 2) document.getElementById('save-btn').style.display = 'block';
+                    }
+                }, 70 + (i * 50));
+            });
+        }
+
+        function download() {
+            const text = "WRITING PROMPT\n\n" + 
+                         "SCENARIO: " + document.getElementById('scen').innerText + "\n\n" +
+                         "GENRE: " + document.getElementById('gen').innerText + "\n\n" +
+                         "CHARACTER: " + document.getElementById('char').innerText;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'writing_prompt.txt';
+            a.click();
+        }
+    </script>
+</body>
+</html>
