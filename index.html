@@ -8,46 +8,90 @@
     <link rel="apple-touch-icon" href="icon.png">
     
     <style>
-        body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
-        h1 { color: #ff4757; margin-top: 40px; }
-        .container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
+        body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 10px; }
+        h1 { color: #ff4757; margin-top: 20px; font-size: 1.8rem; }
+        p.subtitle { color: #95a5a6; margin-bottom: 20px; }
+        
+        /* The 4-Column Layout */
+        .container { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
         .column { display: flex; flex-direction: column; align-items: center; width: 220px; }
+        
         .wheel {
             width: 100%; height: 180px; background: #1e1e1e; border: 2px solid #444;
             border-radius: 12px; display: flex; align-items: center; justify-content: center;
             padding: 15px; font-weight: bold; font-size: 0.95rem; line-height: 1.3;
             box-shadow: 0 8px 15px rgba(0,0,0,0.5); box-sizing: border-box;
+            overflow: hidden;
         }
-        .label { color: #ff4757; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; letter-spacing: 2px; font-weight: bold; }
-        .button-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        
+        .label { color: #ff4757; text-transform: uppercase; font-size: 10px; margin-bottom: 8px; letter-spacing: 1.5px; font-weight: bold; }
+        
+        .button-group { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 10px; }
+        
         button {
-            padding: 15px 40px; font-size: 18px; cursor: pointer; border-radius: 50px; border: none;
+            padding: 15px 40px; font-size: 1.1rem; cursor: pointer; border-radius: 50px; border: none;
             background: #ff4757; color: white; font-weight: bold; width: 280px; transition: 0.2s;
         }
         button:hover { background: #ff6b81; transform: scale(1.02); }
-        #save-btn { background: #2f3542; display: none; font-size: 14px; }
+        
+        /* The Copy Button starts hidden */
+        #copy-btn { display: none; background: #2f3542; font-size: 0.9rem; }
+        
         .spinning { border-color: #ff4757; animation: shake 0.1s infinite; }
         @keyframes shake { 0% { transform: translateY(-1px); } 100% { transform: translateY(1px); } }
+        
+        /* History Section Styles */
+        #history-section {
+            margin: 40px auto; padding: 20px; background: #16213e;
+            border-radius: 15px; width: 90%; max-width: 900px; text-align: left;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .history-item {
+            border-bottom: 1px solid #1a1a2e; padding: 12px 0;
+            font-size: 0.85rem; color: #bdc3c7; line-height: 1.4;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-tag { color: #ff4757; font-weight: bold; margin-right: 8px; font-size: 0.75rem; }
     </style>
 </head>
 <body>
 
     <h1>Writing Roulette</h1>
-    <p style="color: #95a5a6;">Tap to generate your next story.</p>
+    <p class="subtitle">Spin for a new interstellar odyssey.</p>
 
     <div class="container">
-        <div class="column"><div class="label">Scenario</div><div id="scen" class="wheel">?</div></div>
-        <div class="column"><div class="label">Genre</div><div id="gen" class="wheel">?</div></div>
-        <div class="column"><div class="label">Character</div><div id="char" class="wheel">?</div></div>
-        <div class="column"><div class="label">Wildcard</div><div id="wild" class="wheel">?</div></div>
+        <div class="column">
+            <div class="label">Scenario</div>
+            <div id="scen" class="wheel">?</div>
+        </div>
+        <div class="column">
+            <div class="label">Genre</div>
+            <div id="gen" class="wheel">?</div>
+        </div>
+        <div class="column">
+            <div class="label">Character</div>
+            <div id="char" class="wheel">?</div>
+        </div>
+        <div class="column">
+            <div class="label">Wildcard</div>
+            <div id="wild" class="wheel">?</div>
+        </div>
     </div>
 
     <div class="button-group">
         <button onclick="spin()">SPIN THE WHEELS</button>
-        <button id="save-btn" onclick="download()">DOWNLOAD AS TXT</button>
+        <button id="copy-btn" onclick="copyToClipboard()">COPY TO CLIPBOARD</button>
+    </div>
+
+    <div id="history-section">
+        <div class="label" style="text-align: left; margin-bottom: 15px;">Spin History</div>
+        <div id="history-list">
+            <p style="font-size: 0.8rem; color: #57606f;">No spins recorded yet.</p>
+        </div>
     </div>
 
     <script>
+        // --- 1. PROMPT LISTS ---
         const scenarios = [
             "An object that feels genuine empathy for its owner.",
             "A character discovers a door in their house that wasn't there yesterday.",
@@ -103,8 +147,11 @@
             "The Ghost in the Room: Act as if a third person is there when they aren't.",
         ];
 
+        // --- 2. THE SPIN FUNCTION ---
         function spin() {
-            document.getElementById('save-btn').style.display = 'none';
+            // Hide copy button while spinning
+            document.getElementById('copy-btn').style.display = 'none';
+            
             const configs = [
                 {id:'scen', list:scenarios}, 
                 {id:'gen', list:genres}, 
@@ -116,29 +163,68 @@
                 let el = document.getElementById(cfg.id);
                 el.classList.add('spinning');
                 let count = 0;
+                
                 let timer = setInterval(() => {
                     el.innerText = cfg.list[Math.floor(Math.random() * cfg.list.length)];
                     count++;
+                    
                     if (count > 15) {
                         clearInterval(timer);
                         el.classList.remove('spinning');
-                        if (i === 3) document.getElementById('save-btn').style.display = 'inline-block';
+                        
+                        // When the final wheel stops (index 3)
+                        if (i === 3) {
+                            document.getElementById('copy-btn').style.display = 'inline-block';
+                            addToHistory();
+                        }
                     }
                 }, 70 + (i * 50));
             });
         }
 
-        function download() {
-            const text = "WRITING PROMPT\n\n" + 
-                         "SCENARIO: " + document.getElementById('scen').innerText + "\n\n" +
-                         "GENRE: " + document.getElementById('gen').innerText + "\n\n" +
-                         "CHARACTER: " + document.getElementById('char').innerText;
-                         "WILDCARD: " + document.getElementById('wild').innerText;
-            const blob = new Blob([text], { type: 'text/plain' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'writing_prompt.txt';
-            a.click();
+        // --- 3. THE HISTORY FUNCTION ---
+        function addToHistory() {
+            const list = document.getElementById('history-list');
+            const s = document.getElementById('scen').innerText;
+            const g = document.getElementById('gen').innerText;
+            const c = document.getElementById('char').innerText;
+            const w = document.getElementById('wild').innerText;
+
+            if (list.innerHTML.includes("No spins recorded yet")) {
+                list.innerHTML = "";
+            }
+
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            // Extract text before the colon for a cleaner list
+            const shortGen = g.split(':')[0];
+            const shortChar = c.split(':')[0];
+            const shortWild = w.split(':')[0];
+
+            item.innerHTML = `<span class="history-tag">PROMPT:</span> ${shortGen} | ${s} | ${shortChar} | ${shortWild}`;
+            list.insertBefore(item, list.firstChild);
+        }
+
+        // --- 4. THE COPY FUNCTION ---
+        async function copyToClipboard() {
+            const text = `WRITING PROMPT\n------------------\nSCENARIO: ${document.getElementById('scen').innerText}\nGENRE: ${document.getElementById('gen').innerText}\nCHARACTER: ${document.getElementById('char').innerText}\nWILDCARD: ${document.getElementById('wild').innerText}`;
+
+            try {
+                await navigator.clipboard.writeText(text);
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.innerText;
+                btn.innerText = "COPIED!";
+                btn.style.background = "#2ed573";
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "#2f3542";
+                }, 1500);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                alert("Could not copy. Please try manually!");
+            }
         }
     </script>
 </body>
