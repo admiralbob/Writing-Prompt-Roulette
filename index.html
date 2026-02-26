@@ -11,12 +11,12 @@
         body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
         h1 { color: #ff4757; margin-top: 40px; }
         .container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
-        .column { display: flex; flex-direction: column; align-items: center; }
+        .column { display: flex; flex-direction: column; align-items: center; width: 220px; }
         .wheel {
-            width: 280px; height: 200px; background: #1e1e1e; border: 2px solid #444;
-            border-radius: 15px; display: flex; align-items: center; justify-content: center;
-            padding: 20px; font-weight: bold; font-size: 18px; line-height: 1.4;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5); box-sizing: border-box;
+            width: 100%; height: 180px; background: #1e1e1e; border: 2px solid #444;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            padding: 15px; font-weight: bold; font-size: 0.95rem; line-height: 1.3;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.5); box-sizing: border-box;
         }
         .label { color: #ff4757; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; letter-spacing: 2px; font-weight: bold; }
         .button-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -36,18 +36,10 @@
     <p style="color: #95a5a6;">Tap to generate your next story.</p>
 
     <div class="container">
-        <div class="column">
-            <div class="label">Scenario</div>
-            <div id="scen" class="wheel">?</div>
-        </div>
-        <div class="column">
-            <div class="label">Genre</div>
-            <div id="gen" class="wheel">?</div>
-        </div>
-        <div class="column">
-            <div class="label">Character & Task</div>
-            <div id="char" class="wheel">?</div>
-        </div>
+        <div class="column"><div class="label">Scenario</div><div id="scen" class="wheel">?</div></div>
+        <div class="column"><div class="label">Genre</div><div id="gen" class="wheel">?</div></div>
+        <div class="column"><div class="label">Character</div><div id="char" class="wheel">?</div></div>
+        <div class="column"><div class="label">Wildcard</div><div id="wild" class="wheel">?</div></div>
     </div>
 
     <div class="button-group">
@@ -58,11 +50,15 @@
     <script>
         const scenarios = [
             "An object that feels genuine empathy for its owner.",
-            "Two characters are trapped in a room, but neither speak the same language.",
             "A character discovers a door in their house that wasn't there yesterday.",
-            "A letter arrives, but it's addressed to a version of the recipient that doesn't exist yet.",
             "A celebration is interrupted by a broadcast that changes the laws of physics.",
-            "A character must trade their most prized memory for vital information."
+            "A character is legally required to spend 24 hours with their childhood self.",
+            "Two characters find a suitcase of money covered in a substance that glows in the dark.",
+            "An ancient artifact is found at a construction site, and it is still plugged in.",
+            "A character must clean out the apartment of a relative they never knew existed.",
+            "A 100-year-old time capsule is opened, containing a photo of a current group member.",
+            "A character's reflection in the mirror lags behind or jumps ahead by three seconds.",
+            "A character receives a phone call from their own phone number."
         ];
 
         const genres = [
@@ -81,28 +77,53 @@
             "The Professional: Must finish a job while being constantly interrupted.",
             "The Messenger: Must deliver a piece of news that will change everything.",
             "The Neighbor: Must ask for a favor from someone they’ve been avoiding.",
-            "The Expert: Must explain something complex to someone who doesn't care.",
-            "The Relative: Must settle an old family argument once and for all.",
-            "The Bystander: Must decide whether to step in or walk away from a conflict.",
-            "The Outcast: Must convince a group of strangers to trust them."
+            "The Outcast: Must convince a group of strangers to trust them.",
+            "The Saboteur: Secretly trying to make a project fail for a 'noble' reason.",
+            "The Tourist: In the wrong place at the wrong time, trying to make the best of it.",
+            "The Whistleblower: Has proof of a minor corruption that will ruin a good person's life.",
+            "The Perfectionist: Must complete a high-stakes task with 'imperfect' tools.",
+            "The Prodigy: Naturally gifted but has lost all passion for their craft.",
+            "The Mediator: Must resolve a conflict where both sides are technically right.",
+            "The Imposter: Has successfully faked their way into a high-level position.",
+        ];
+
+        const wildcards = [
+            "The Sensory Ban: Character is blind; no visual descriptions allowed.",
+            "The Silent Emotion: A key emotion must be felt but never named.",
+            "The Adverb Fast: No words ending in -ly allowed.",
+            "The Monosyllabic Challenge: 50% of sentences must be single-syllable words only.",
+            "The Static Camera: Characters cannot move their feet during the scene.",
+            "The No-Dialogue Rule: No spoken words allowed.",
+            "The Unreliable Filter: Narrator must lie about one physical fact in the room.",
+            "The Soundscape: Every paragraph must start with a sound description.",
+            "The Unwelcome Guest: In the middle of the scene, a character who definitely shouldn't be there walks in.",
+            "The Tick-Tock: Something in the room is going to explode, break, or expire in exactly five minutes.",
+            "The Truth Serum: One character is physically incapable of lying.",
+            "The Power Outage: The lights go out (or the magic fades, or the tech fails) at the worst possible moment.",
+            "The Misinterpreted Gift: A peace offering is taken as a direct insult.",
+            "The Ghost in the Room: Act as if a third person is there when they aren't.",
         ];
 
         function spin() {
             document.getElementById('save-btn').style.display = 'none';
-            const ids = ['scen', 'gen', 'char'];
-            const lists = [scenarios, genres, characters];
+            const configs = [
+                {id:'scen', list:scenarios}, 
+                {id:'gen', list:genres}, 
+                {id:'char', list:characters}, 
+                {id:'wild', list:wildcards}
+            ];
 
-            ids.forEach((id, i) => {
-                let el = document.getElementById(id);
+            configs.forEach((cfg, i) => {
+                let el = document.getElementById(cfg.id);
                 el.classList.add('spinning');
                 let count = 0;
                 let timer = setInterval(() => {
-                    el.innerText = lists[i][Math.floor(Math.random() * lists[i].length)];
+                    el.innerText = cfg.list[Math.floor(Math.random() * cfg.list.length)];
                     count++;
                     if (count > 15) {
                         clearInterval(timer);
                         el.classList.remove('spinning');
-                        if (i === 2) document.getElementById('save-btn').style.display = 'block';
+                        if (i === 3) document.getElementById('save-btn').style.display = 'inline-block';
                     }
                 }, 70 + (i * 50));
             });
@@ -113,6 +134,7 @@
                          "SCENARIO: " + document.getElementById('scen').innerText + "\n\n" +
                          "GENRE: " + document.getElementById('gen').innerText + "\n\n" +
                          "CHARACTER: " + document.getElementById('char').innerText;
+                         "WILDCARD: " + document.getElementById('wild').innerText;
             const blob = new Blob([text], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
