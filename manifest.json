@@ -1,7 +1,7 @@
 {
   "name": "Writing Prompt Roulette",
   "short_name": "WritingSpin",
-  "start_url": "writing_app.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#ff4757",
